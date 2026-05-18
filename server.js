@@ -17,6 +17,13 @@ wss.on("connection", (ws) => {
       cleanup();
     } else if (["offer","answer","ice"].includes(msg.type)) {
       rooms[myRoom]?.get(msg.to)?.send(JSON.stringify({ ...msg, from: myId }));
+    } else if (myRoom) {
+      // Generic broadcast: relay any other message type to all other peers in the room
+      rooms[myRoom]?.forEach((peer, id) => {
+        if (id !== myId) {
+          peer.send(JSON.stringify({ ...msg, from: myId }));
+        }
+      });
     }
   });
   function cleanup() {
